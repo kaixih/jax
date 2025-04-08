@@ -1258,20 +1258,24 @@ def scaled_matmul(
 
       Basic case:
 
-      >>> a = jnp.array([1, 2, 3]).reshape((1, 1, 3))
-      >>> b = jnp.array([4, 5, 6]).reshape((1, 1, 3))
-      >>> a_scales = jnp.array([0.5]).reshape((1, 1, 1))
-      >>> b_scales = jnp.array([0.5]).reshape((1, 1, 1))
-      >>> scaled_matmul(a, b, a_scales, b_scales)
-      Array([[[8.]]], dtype=float32)
+      .. code-block::
+
+        a = jnp.array([1, 2, 3]).reshape((1, 1, 3))
+        b = jnp.array([4, 5, 6]).reshape((1, 1, 3))
+        a_scales = jnp.array([0.5]).reshape((1, 1, 1))
+        b_scales = jnp.array([0.5]).reshape((1, 1, 1))
+        scaled_matmul(a, b, a_scales, b_scales)
 
       Using fused cuDNN call on Blackwell GPUs:
 
-      >>> a = random.normal(keys[0], (3, 128, 64), dtype=jnp.float8_e4m3fn)
-      >>> b = random.normal(keys[1], (3, 128, 64), dtype=jnp.float8_e4m3fn)
-      >>> a_scales = jnp.ones((3, 128, 4), dtype=jnp.float8_e8m0fnu)
-      >>> b_scales = jnp.ones((3, 128, 4), dtype=jnp.float8_e8m0fnu)
-      >>> scaled_matmul(a, b, a_scales, b_scales)
+      .. code-block::
+
+        a = jax.random.normal(keys[0], (3, 128, 64), dtype=jnp.float8_e4m3fn)
+        b = jax.random.normal(keys[1], (3, 128, 64), dtype=jnp.float8_e4m3fn)
+        a_scales = jnp.ones((3, 128, 4), dtype=jnp.float8_e8m0fnu)
+        b_scales = jnp.ones((3, 128, 4), dtype=jnp.float8_e8m0fnu)
+        scaled_matmul(a, b, a_scales, b_scales)
+
     """
     if not all(x.ndim == 3 for x in (a, b, a_scales, b_scales)):
         raise ValueError(
@@ -1396,20 +1400,28 @@ def scaled_dot_general(
 
     Creating config for mxfp8:
 
-    >>> configs = [jax.nn.get_scaled_dot_general_config('mxfp8')] * 3
+    .. code-block::
+
+      configs = [jax.nn.get_scaled_dot_general_config('mxfp8')] * 3
 
     Creating config for nvfp4:
 
-    >>> global_scale = jnp.array([0.5], jnp.float32)
-    >>> configs = [jax.nn.get_scaled_dot_general_config('nvfp4', global_scale)] * 3
+    .. code-block::
+
+      global_scale = jnp.array([0.5], jnp.float32)
+      configs = [jax.nn.get_scaled_dot_general_config('nvfp4', global_scale)] * 3
 
     Using scaled_dot_general with the configs:
 
-    >>> import functools
-    >>> scaled_dot_general_fn = functools.partial(jax.nn.scaled_dot_general, configs=configs)
-    >>> lhs = random.normal(keys[0], (3, 128, 64))
-    >>> rhs = random.normal(keys[1], (3, 128, 64))
-    >>> out = scaled_dot_general_fn(lhs, rhs, (((2,), (2,)), ((0,), (0,))))
+    .. code-block::
+
+      import functools
+      scaled_dot_general_fn = functools.partial(
+          jax.nn.scaled_dot_general, configs=configs)
+      lhs = jax.random.normal(keys[0], (3, 128, 64))
+      rhs = jax.random.normal(keys[1], (3, 128, 64))
+      out = scaled_dot_general_fn(lhs, rhs, (((2,), (2,)), ((0,), (0,))))
+
   """
   # Create configs if not provided
   if configs is None:
